@@ -1,0 +1,201 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">  
+   <title>GooYahBi - search Google, Yahoo and Bind in one HTTP Request</title>
+   <link rel="stylesheet" href="http://yui.yahooapis.com/2.7.0/build/reset-fonts-grids/reset-fonts-grids.css" type="text/css">
+   <link rel="stylesheet" href="http://yui.yahooapis.com/2.7.0/build/base/base.css" type="text/css">
+   <style type="text/css">
+    html,body{color:#fff;background:#222;font-family:calibri,verdana,arial,sans-serif;}
+    h1{font-size:300%;margin:0;text-align:right;color:#3c3}
+    h2{background:#369;padding:5px;color:#fff;font-weight:bold;-moz-box-shadow: 0px 4px 2px -2px #000;-moz-border-radius:5px;-webkit-border-radius:5px;text-shadow: #000 1px 1px;}
+    h3 a{color:#69c;text-decoration:none;}
+    h3{margin:0 0 .2em 0}
+    .info{font-size:200%;color:#999;margin:1em 0;}
+    input[type=text]{-moz-border-radius:5px;-webkit-border-radius:5px;border:1px solid #fff;padding:3px;}
+    input[type=submit]{-moz-border-radius:5px;-webkit-border-radius:5px;border:2px solid #3c3;background:#3c3}
+    form{font-size:150%;margin-top:-1.8em;}
+    ul,ul li{margin:0;padding:0;list-style:none;}
+    p span{display:block;text-align: left;margin-top:.5em;font-size:90%;color:#999;}
+    #yahoo a{color:#c6c;}
+    #yahoo h2{background:#c6c;}
+    #bing a{color:#fc6;}
+    #bing h2{background:#fc6;}
+    #ft p{color:#666;text-align: left;}
+    #ft a{color:#ccc;}
+   </style>  
+</head>
+<body>
+<div id="doc" class="yui-t7">
+   <div id="hd" role="banner"><h1>GooYahBi</h1></div>
+   <div id="bd" role="main">
+    <form action="" method="post" id="mainform">
+          <div>
+               <label for="search">Search:</label>
+               <input type="text" name="search" id="search" />
+               <input type="submit" value="Go!">
+          </div>
+    </form>
+    <p class="info">GooYAhBi allows you to search Google, Yahoo and Bing in one go. Simply add your search term above and hit the Go button.</p>
+    <div class="yui-gb">
+        <div class="yui-u first" id="google"></div>
+        <div class="yui-u" id="yahoo"></div>
+        <div class="yui-u" id="bing"></div>
+    </div>
+    </div>
+   <div id="ft" role="contentinfo"><p>follow me @<a href="http://twitter.com/thinkphp">thinkphp</a> using YUI and YQL</p></div>
+</div>
+<script type="text/javascript" charset="utf-8">
+
+        var gooyahbi = function() {
+
+            var google = document.getElementById('google'),
+
+                yahoo = document.getElementById('yahoo'),
+
+                bing = document.getElementById('bing');
+
+            function seed(o) {
+
+                if(o.query.results.results[2]) {
+
+                   var res = o.query.results.results[2].WebResult;
+
+                   var all = res.length;
+
+                   var out = '<h2>Bing</h2><ul>';   
+
+                       for(var i=0;i<all;i++) {
+
+                           out += '<li><h3><a href="'+res[i].Url+'">'+res[i].Title+'</a></h3><p>'+res[i].Description+'<span>('+res[i].DisplayUrl+')</span></p></li>';
+                       }
+
+                       out += '</ul>'; 
+
+                   bing.innerHTML = out; 
+
+                } else {
+
+                   bing.innerHTML = '<h2>Bing</h2><ul><li><h3>No results found. </h3></li></ul>';
+                }
+
+
+                if(o.query.results.results[0]) {
+
+                   var res = o.query.results.results[0].results;
+
+                   var all = res.length;
+
+                   var out = '<h2>Google</h2><ul>';   
+
+                       for(var i=0;i<all;i++) {
+
+                           out += '<li><h3><a href="'+res[i].url+'">'+res[i].titleNoFormatting+'</a></h3><p>'+res[i].content+'<span>('+res[i].visibleUrl+')</span></p></li>';
+                       }
+
+                       out += '</ul>'; 
+
+                   google.innerHTML = out; 
+
+                } else {
+
+                   google.innerHTML = '<h2>Google</h2><ul><li><h3>No results found. </h3></li></ul>';
+                }
+
+
+                if(o.query.results.results[1]) {
+
+                   var res = o.query.results.results[1].result;
+
+                   var all = res.length;
+
+                   var out = '<h2>Yahoo</h2><ul>';   
+
+                       for(var i=0;i<all;i++) {
+
+                           out += '<li><h3><a href="'+res[i].clickurl+'">'+res[i].title+'</a></h3><p>'+res[i].abstract+'<span>('+res[i].dispurl+')</span></p></li>';
+                       }
+
+                       out += '</ul>'; 
+
+                   yahoo.innerHTML = out; 
+
+                } else {
+
+                   yahoo.innerHTML = '<h2>Yahoo</h2><ul><li><h3>No results found. </h3></li></ul>';
+                }
+
+
+            };
+
+            function doSearch(){
+
+                google.innerHTML = '<h2>Google loading...</h2>';
+
+                yahoo.innerHTML = '<h2>Yahoo loading...</h2>';
+
+                bing.innerHTML = '<h2>Bing loading...</h2>';
+
+                var query = document.getElementById('search').value; 
+
+                var root = 'http://query.yahooapis.com/v1/public/yql?q=';
+
+                var yql = 'select * from query.multi where queries=\'select titleNoFormatting,url,content,visibleUrl from google.search(20) where q = "'+query+'"; select title,clickurl,abstract,dispurl from search.web(20) where query="'+query+'"; select Title,Description,Url,DisplayUrl from microsoft.bing.web(20) where query="'+query+'"\'';
+
+                var bottom = '&format=json&env=store'+
+                             '%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback='+
+                             'gooyahbi.seed&diagnostics=false';
+
+                var src = root + encodeURIComponent(yql) + bottom;
+
+                loadScript(src,function(){if(window.console){console.log('YQL: '+yql);}});
+
+            };
+
+            document.getElementById('mainform').onsubmit = function() {
+
+                doSearch();
+
+              return false;   
+            } 
+
+            function loadScript(url, callback){
+
+                var script = document.createElement("script");
+
+                    script.type = "text/javascript";
+
+                if (script.readyState){  //IE
+
+                    script.onreadystatechange = function(){
+
+                             if (script.readyState == "loaded" || script.readyState == "complete") {
+
+                                           script.onreadystatechange = null;
+
+                                           callback();
+                             }
+
+                    };//end function
+ 
+                         } else {  //Others
+
+                                script.onload = function(){
+
+                                           callback();
+                                };
+                         }
+
+                  script.src = url;
+
+                  document.getElementsByTagName("head")[0].appendChild(script);
+              }
+
+
+            return{seed: seed};
+
+        }();
+
+</script>
+</body>
+</html>
